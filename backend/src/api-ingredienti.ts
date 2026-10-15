@@ -29,7 +29,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// 2. GET singolo + check eliminabile (invariato)
+// 2. GET singolo + check eliminabile
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const [ingrediente]: any = await pool.query(
@@ -44,8 +44,9 @@ router.get("/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ errore: "Ingrediente non trovato" });
     }
 
+    // FIX: nome tabella corretto (ricetta_ingrediente, al singolare)
     const [uso]: any = await pool.query(
-      "SELECT COUNT(*) as usato FROM ricetta_ingredienti WHERE ingrediente_id = ?",
+      "SELECT COUNT(*) as usato FROM ricetta_ingrediente WHERE ingrediente_id = ?",
       [Number(req.params.id)],
     );
 
