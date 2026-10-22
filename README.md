@@ -29,9 +29,9 @@ Il progetto è diviso in due parti indipendenti: un **backend** che espone le AP
 ## ✨ Funzionalità
 
 - 🍝 **Ricette:** elenco con gli ingredienti utilizzati, creazione di nuove ricette con quantità e unità di misura, eliminazione
-- 🥕 **Ingredienti:** elenco con giacenza e stato delle scorte (✅ OK, ⚠️ POCO, 🛑 ESAURITO), aggiunta ed eliminazione
-- 📦 **Gestione automatica delle scorte:** creando una ricetta le quantità degli ingredienti vengono scalate, eliminandola vengono ripristinate
-- 🔒 **Operazioni in transazione:** ricette e scorte restano sempre coerenti, anche in caso di errore
+- 🥕 **Ingredienti:** elenco con scorta disponibile e stato (OK, POCO, ESAURITO), aggiunta, modifica ed eliminazione (bloccata se l'ingrediente è usato in una ricetta)
+- 📦 **Gestione automatica delle scorte:** creando una ricetta le quantità vengono scalate (con conversione tra unità compatibili, es. g → kg), eliminandola vengono ripristinate esattamente; la creazione viene rifiutata se la scorta non basta
+- 🔒 **Operazioni in transazione:** ricette e scorte restano sempre coerenti, anche in caso di errore o di richieste concorrenti (`SELECT ... FOR UPDATE`)
 - 🪟 **Finestre modali** per inserire i dati senza lasciare la pagina
 - 💾 **Dati persistenti** salvati su database tramite API REST
 - 🎨 **Interfaccia curata**, con fogli di stile dedicati a ogni sezione
@@ -167,3 +167,26 @@ Progetto creato da **[antozito2845-design](https://github.com/antozito2845-desig
 Se il progetto ti è piaciuto, lascia una ⭐ al repository!
 
 </div>
+
+## 🔌 API
+
+| Metodo | Rotta | Descrizione |
+|---|---|---|
+| GET | `/api/ingredienti` | Elenco con stato delle scorte e `puoEliminare` |
+| GET | `/api/ingredienti/:id` | Dettaglio |
+| POST | `/api/ingredienti` | Creazione (la quantità è la scorta iniziale) |
+| PUT | `/api/ingredienti/:id` | Modifica / rifornimento |
+| DELETE | `/api/ingredienti/:id` | Eliminazione (409 se usato in una ricetta) |
+| GET | `/api/ricette` | Elenco con riepilogo ingredienti |
+| POST | `/api/ricette` | Creazione con scarico scorte in transazione |
+| PUT | `/api/ricette/:id` | Modifica di nome, istruzioni e difficoltà |
+| DELETE | `/api/ricette/:id` | Eliminazione con ripristino scorte in transazione |
+| GET | `/api/stats` | Conteggio ricette e ingredienti |
+| GET | `/api/health` | Stato del server e del database |
+
+Gli errori hanno sempre la forma `{ "errore": "messaggio" }` con il codice HTTP appropriato: 400 dati non validi, 404 risorsa inesistente, 409 conflitto (scorta insufficiente, ingrediente in uso), 500 errore interno senza dettagli tecnici.
+
+## 🗄️ Aggiornare un database esistente
+
+Se hai creato il database con una versione precedente dello schema, fai un backup ed esegui una volta `backend/migrazione-001.sql`.
+
